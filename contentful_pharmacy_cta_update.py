@@ -15,9 +15,9 @@ warnings.filterwarnings("ignore")
 
 # ── Configuration ──────────────────────────────────────────────────────────────
 
-SPACE_ID = os.environ.get("CONTENTFUL_SPACE_ID", "")
+SPACE_ID = os.environ.get("CONTENTFUL_SPACE_ID", "YOUR_SPACE_ID")
 ENV      = os.environ.get("CONTENTFUL_ENVIRONMENT", "master")
-TOKEN    = os.environ.get("CONTENTFUL_MANAGEMENT_TOKEN", "")
+TOKEN    = os.environ.get("CONTENTFUL_MANAGEMENT_TOKEN", "YOUR_MANAGEMENT_TOKEN")
 BASE_URL = f"https://api.contentful.com/spaces/{SPACE_ID}/environments/{ENV}"
 
 EXCEL_PATH = os.environ.get("PHARMACY_EXCEL", "pharmacy_updates.xlsx")
