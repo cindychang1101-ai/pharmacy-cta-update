@@ -325,6 +325,7 @@ body {
 /* Collapse */
 .collapse { display: none; }
 .collapse.open { display: table-row-group; }
+thead.collapse.open { display: table-header-group; }
 
 /* ═══════════════════════════════════════════════════════
    MODAL FOOTER
@@ -574,29 +575,30 @@ body {
         <table class="tbl">
           <thead>
             <tr>
-              <th class="c" style="width:44px">Include</th>
-              <th style="width:24%">Site Name</th>
-              <th style="width:8%">Yext ID</th>
-              <th style="width:19%">Old URL</th>
+              <th class="c" style="width:48px;text-align:center">Include</th>
+              <th style="width:22%">Site Name</th>
+              <th style="width:7%">Yext ID</th>
+              <th style="width:16%">Location</th>
+              <th style="width:17%">Old URL</th>
               <th style="width:16px"></th>
-              <th style="width:19%">New URL</th>
+              <th style="width:17%">New URL</th>
               <th>Status</th>
-              <th style="width:28px"></th>
+              <th style="width:32px"></th>
             </tr>
           </thead>
           <tbody>
-            <!-- Row 1 of 2 for Mt. Diablo — toggle + hospital name span both rows -->
+            <!-- Row 1 of 2 for Mt. Diablo -->
             <tr id="row-124-1" class="hosp-grp-top">
-              <td class="c" style="padding:9px 8px" rowspan="2">
+              <td style="width:48px;text-align:center;vertical-align:middle;padding:9px 8px" rowspan="2">
                 <label class="row-tog">
                   <input type="checkbox" checked id="chk-124" onchange="toggleHospital('124',this)">
                   <div class="sw"></div>
                 </label>
               </td>
-              <td rowspan="2" style="border-right:1px solid var(--border-lt)">
+              <td rowspan="2" style="vertical-align:middle">
                 <div class="hosp">Mt. Diablo Veterinary Medical Center</div>
-                <div style="font-family:var(--mono);font-size:11px;color:var(--text-lt);margin-top:3px">ID: 124</div>
               </td>
+              <td class="yid" rowspan="2" style="vertical-align:middle">124</td>
               <td>
                 <div class="loc-info">
                   <span class="loc-tag">Header</span>
@@ -650,24 +652,34 @@ body {
         </div>
 
         <table class="tbl">
+          <thead class="collapse" id="skippedHead">
+            <tr>
+              <th style="width:32%">Site Name</th>
+              <th style="width:8%">Yext ID</th>
+              <th>Current URL</th>
+              <th style="width:32px"></th>
+            </tr>
+          </thead>
           <tbody class="collapse" id="skippedRows">
             <tr>
-              <td style="width:44px"></td>
-              <td style="width:26%"><div class="hosp" style="font-weight:400">All Creatures Animal Hospital</div></td>
-              <td class="yid" style="width:9%">0386</td>
-              <td class="umono udim" style="width:21%">allcreaturesanimalcl.<wbr>covetruspharmacy.com</td>
-              <td class="arr">→</td>
-              <td class="umono udim" style="width:21%">shop.allcreaturesanimalhospital.org</td>
-              <td><span class="tag t-skip"><span class="dot"></span>No change needed</span></td>
+              <td><div class="hosp" style="font-weight:400">All Creatures Animal Hospital</div></td>
+              <td class="yid">0386</td>
+              <td class="umono udim">shop.allcreaturesanimalhospital.org</td>
+              <td>
+                <a href="#" class="ctfl-lnk" title="View in Contentful" onclick="return false">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                </a>
+              </td>
             </tr>
             <tr>
-              <td style="width:44px"></td>
               <td><div class="hosp" style="font-weight:400">Portland Veterinary Wellness Center</div></td>
               <td class="yid">0494</td>
-              <td class="umono udim">portlandvet.<wbr>covetruspharmacy.com</td>
-              <td class="arr">→</td>
               <td class="umono udim">shop.portlandveterinarywellnesscenter.<wbr>com/pet/</td>
-              <td><span class="tag t-skip"><span class="dot"></span>No change needed</span></td>
+              <td>
+                <a href="#" class="ctfl-lnk" title="View in Contentful" onclick="return false">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                </a>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -768,8 +780,10 @@ function setAction(key, lbl, el) {
 
 function toggleSkipped() {
   const r = document.getElementById('skippedRows');
+  const h = document.getElementById('skippedHead');
   const b = document.getElementById('togBtn');
   const open = r.classList.toggle('open');
+  h.classList.toggle('open', open);
   b.textContent = open ? 'Hide ▴' : 'Show ▾';
 }
 
