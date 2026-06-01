@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pharmacy Link — Contentful</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --white:      #FFFFFF;
+  --page-bg:    #F4F6F8;
+  --border:     #E5E7EB;
+  --border-lt:  #F0F2F5;
+  --text:       #2A3039;
+  --text-mid:   #6B7280;
+  --text-lt:    #9CA3AF;
+  --blue:       #2563EB;
+  --blue-lt:    #EFF6FF;
+  --green:      #1E7D34;
+  --green-dk:   #155724;
+  --green-pill: #1B7A31;
+  --amber-bg:   #FFFBEB;
+  --amber-bd:   #FDE68A;
+  --amber-icon: #D97706;
+  --red:        #B91C1C;
+  --purple:     #6D28D9;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: "SFMono-Regular", "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--page-bg);
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  color: var(--text); font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ═══════════════════════════════════════════════════════
+   TOP NAV  — white, icons, exact match to screenshot
+═══════════════════════════════════════════════════════ */
+.ctfl-nav {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  height: 48px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px;
+  flex-shrink: 0; position: relative; z-index: 10;
+}
+.nav-left  { display: flex; align-items: center; gap: 0; }
+.nav-right { display: flex; align-items: center; gap: 6px; }
+
+/* Colorful Contentful C logo */
+.ctfl-logo { display: flex; align-items: center; padding-right: 20px; cursor: pointer; }
+
+/* Nav links */
+.nav-link {
+  display: flex; align-items: center; gap: 5px;
+  padding: 0 13px; height: 48px;
+  font-size: 14px; color: var(--text-mid);
+  cursor: pointer; transition: color .12s;
+  white-space: nowrap; text-decoration: none;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+}
+.nav-link:hover { color: var(--text); }
+.nav-link svg { width: 15px; height: 15px; flex-shrink: 0; }
+.nav-link .chv { width: 10px; height: 10px; margin-left: -2px; }
+
+/* NVA > master pill */
+.space-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  border: 1px solid var(--green-pill);
+  border-radius: 4px; padding: 3px 9px;
+  font-size: 12.5px; font-weight: 500; color: var(--green-pill);
+  cursor: pointer; white-space: nowrap;
+}
+
+/* Icon buttons */
+.icon-btn {
+  width: 30px; height: 30px; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: none; cursor: pointer;
+  color: var(--text-mid); transition: background .12s;
+}
+.icon-btn:hover { background: var(--border-lt); color: var(--text); }
+.icon-btn svg { width: 16px; height: 16px; }
+
+/* Avatar */
+.avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: #3D9B6B;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10.5px; font-weight: 700; color: white; cursor: pointer;
+}
+
+/* ═══════════════════════════════════════════════════════
+   TAB BAR
+═══════════════════════════════════════════════════════ */
+.tab-bar {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  display: flex; gap: 0; flex-shrink: 0;
+}
+.tab {
+  padding: 13px 14px 11px;
+  font-size: 14px; color: var(--text-mid);
+  cursor: pointer; border-bottom: 2px solid transparent;
+  margin-bottom: -1px; transition: color .12s;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--blue); border-bottom-color: var(--blue); font-weight: 500; }
+
+/* ═══════════════════════════════════════════════════════
+   PAGE (background content behind modal)
+═══════════════════════════════════════════════════════ */
+.page {
+  flex: 1; position: relative; overflow: hidden;
+}
+.page-bg {
+  padding: 28px 24px;
+  filter: blur(1px); opacity: .55;
+  pointer-events: none;
+}
+.pg-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+.pg-btn-outline {
+  padding: 6px 14px;
+  border: 1px solid #C3CDD5; border-radius: 4px;
+  background: white; font-size: 14px; color: var(--text); cursor: pointer;
+}
+.pg-info { font-size: 16px; color: var(--text-mid); line-height: 1; }
+.dropzone {
+  border: 1.5px dashed #C3CDD5; border-radius: 4px;
+  background: white; padding: 40px 24px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; margin-bottom: 16px; font-size: 14px; color: var(--text-mid);
+}
+.pg-divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+.pg-section-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+.pg-section-desc  { font-size: 14px; color: var(--text-mid); margin-bottom: 16px; }
+.pg-btn-green {
+  padding: 8px 16px; background: var(--green); color: white;
+  border: none; border-radius: 4px;
+  font-size: 14px; font-weight: 500; font-family: var(--font); cursor: pointer;
+}
+
+/* ═══════════════════════════════════════════════════════
+   OVERLAY + MODAL
+═══════════════════════════════════════════════════════ */
+.overlay {
+  position: absolute; inset: 0;
+  background: rgba(42,48,57,.45);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px; z-index: 20;
+}
+
+.modal {
+  background: var(--white);
+  border-radius: 4px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.15), 0 1px 4px rgba(0,0,0,.08);
+  width: 100%; max-width: 920px; max-height: 88vh;
+  display: flex; flex-direction: column; overflow: hidden;
+  animation: mIn .18s ease;
+}
+@keyframes mIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+/* Modal header — plain, no background */
+.modal-hdr {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.modal-title { font-size: 16px; font-weight: 700; color: var(--text); line-height: 1.3; }
+.modal-close {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-lt); font-size: 20px; line-height: 1;
+  padding: 0; margin-left: 16px; flex-shrink: 0;
+  transition: color .12s;
+}
+.modal-close:hover { color: var(--text); }
+
+/* Progress */
+.prog { height: 2px; background: var(--border); display: none; flex-shrink: 0; overflow: hidden; }
+.prog.on { display: block; }
+.prog-fill { height: 100%; background: var(--blue); width: 0%; transition: width .5s ease; }
+
+/* Banner */
+.banner { display:none; align-items:center; gap:8px; padding:9px 20px; font-size:13px; font-weight:500; border-bottom:1px solid; flex-shrink:0; }
+.banner.on { display:flex; }
+.banner.green  { background:#EDFAF1; border-color:#A8D5B5; color:#155724; }
+.banner.blue   { background:var(--blue-lt); border-color:#BFDBFE; color:#1E40AF; }
+.banner.purple { background:#F5F3FF; border-color:#DDD6FE; color:#4C1D95; }
+.banner svg { width:14px; height:14px; flex-shrink:0; }
+
+/* Modal body */
+.modal-body { flex:1; overflow-y:auto; }
+.modal-body::-webkit-scrollbar { width:6px; }
+.modal-body::-webkit-scrollbar-track { background:transparent; }
+.modal-body::-webkit-scrollbar-thumb { background:#D1D5DB; border-radius:99px; }
+
+/* Section label + desc */
+.sec-wrap { padding: 14px 20px 0; }
+.sec-lbl  { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.sec-desc { font-size: 13px; color: var(--text-mid); margin-bottom: 10px; line-height: 1.5; }
+
+/* Stats row (compact, inline) */
+.stats-row {
+  display: flex; gap: 28px; align-items: center;
+  padding: 10px 20px 12px;
+  border-bottom: 1px solid var(--border-lt);
+}
+.stat-item { text-align: center; }
+.stat-n { font-size: 18px; font-weight: 700; color: var(--text); line-height: 1; }
+.stat-n.blue   { color: var(--blue); }
+.stat-n.green  { color: var(--green); }
+.stat-n.gray   { color: var(--text-lt); }
+.stat-l { font-size: 10.5px; color: var(--text-lt); text-transform: uppercase; letter-spacing: .5px; margin-top: 3px; font-weight: 500; }
+
+/* Info/warning boxes */
+.info-box {
+  display: flex; align-items: flex-start; gap: 8px;
+  margin: 0 20px 12px;
+  padding: 9px 12px; border-radius: 4px; border: 1px solid;
+  font-size: 13px; line-height: 1.5;
+}
+.info-box svg { flex-shrink:0; width:14px; height:14px; margin-top:1px; }
+.ib-info    { background: var(--blue-lt); border-color: #BFDBFE; color: #1E40AF; }
+.ib-warn    { background: var(--amber-bg); border-color: var(--amber-bd); color: #78350F; }
+.ib-success { background: #EDFAF1; border-color: #A8D5B5; color: #155724; }
+
+/* ═══════════════════════════════════════════════════════
+   TABLE  — minimal, matching screenshot 2
+═══════════════════════════════════════════════════════ */
+.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tbl th {
+  text-align: left; font-size: 12px; font-weight: 500;
+  color: var(--text-lt); padding: 6px 20px 5px;
+  border-bottom: 1px solid var(--border); white-space: nowrap;
+}
+.tbl th.c { text-align: center; }
+.tbl td {
+  padding: 9px 20px; color: var(--text);
+  border-bottom: 1px solid var(--border-lt);
+  vertical-align: middle;
+}
+.tbl tr:last-child td { border-bottom: none; }
+.tbl tbody tr { transition: background .1s; }
+.tbl tbody tr:not(.excl):hover td { background: #FAFBFC; }
+.tbl tbody tr.excl td { opacity: .32; }
+.tbl tbody tr.excl .row-tog { pointer-events: all; opacity: 1; }
+
+/* Cell helpers */
+.hosp  { font-weight: 500; font-size: 13px; }
+.yid   { font-family: var(--mono); font-size: 12px; color: var(--text-mid); }
+.umono { font-family: var(--mono); font-size: 11.5px; }
+.uold  { color: var(--red); text-decoration: line-through; }
+.unew  { color: var(--green); }
+.udim  { color: var(--text-lt); }
+.arr   { color: #D1D5DB; font-size: 12px; padding: 9px 2px; width: 20px; text-align: center; }
+
+/* Status tag */
+.tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 7px; border-radius: 3px;
+  font-size: 11.5px; font-weight: 500; border: 1px solid;
+}
+.tag .dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.t-pend { background: #FFFBEB; border-color: #FDE68A; color: #92400E; }
+.t-pend .dot { background: var(--amber-icon); }
+.t-excl { background: var(--border-lt); border-color: var(--border); color: var(--text-lt); }
+.t-excl .dot { background: #D1D5DB; }
+.t-pub  { background: #EDFAF1; border-color: #A8D5B5; color: #155724; }
+.t-pub  .dot { background: var(--green); }
+.t-stg  { background: var(--blue-lt); border-color: #BFDBFE; color: #1E40AF; }
+.t-stg  .dot { background: var(--blue); }
+.t-live { background: #F5F3FF; border-color: #DDD6FE; color: #4C1D95; }
+.t-live .dot { background: var(--purple); }
+.t-skip { background: var(--border-lt); border-color: var(--border); color: var(--text-mid); }
+.t-skip .dot { background: #D1D5DB; }
+
+/* Toggle switch */
+.row-tog { display: inline-flex; align-items: center; cursor: pointer; }
+.row-tog input { display: none; }
+.sw {
+  width: 30px; height: 17px; border-radius: 99px;
+  background: #C3CDD5; position: relative; transition: background .18s;
+}
+.row-tog input:checked + .sw { background: var(--blue); }
+.sw::after {
+  content:''; position:absolute; top:2px; left:2px;
+  width:13px; height:13px; background:white; border-radius:50%;
+  transition:transform .18s; box-shadow:0 1px 2px rgba(0,0,0,.2);
+}
+.row-tog input:checked + .sw::after { transform: translateX(13px); }
+
+/* Section divider (between pending + already-updated) */
+.sec-divider {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 20px 8px;
+  border-top: 1px solid var(--border); margin-top: 4px;
+}
+.sd-title {
+  font-size: 12px; font-weight: 600; color: var(--text-mid);
+  text-transform: uppercase; letter-spacing: .5px;
+  display: flex; align-items: center; gap: 6px;
+}
+.pill {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 17px; height: 17px; padding: 0 4px;
+  border-radius: 99px; font-size: 10.5px; font-weight: 600;
+}
+.pill-blue { background: var(--blue-lt); color: var(--blue); }
+.pill-gray { background: var(--border-lt); color: var(--text-mid); }
+
+.tog-link {
+  background:none; border:none; font-family:var(--font);
+  font-size:13px; color:var(--blue); cursor:pointer;
+  padding:2px 6px; border-radius:3px; transition:background .1s;
+}
+.tog-link:hover { background: var(--blue-lt); }
+
+/* Collapse */
+.collapse { display: none; }
+.collapse.open { display: table-row-group; }
+
+/* ═══════════════════════════════════════════════════════
+   MODAL FOOTER
+═══════════════════════════════════════════════════════ */
+.modal-ftr {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--white); flex-shrink: 0; gap: 12px;
+}
+
+/* Action selector */
+.act-wrap { position: relative; }
+.act-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 11px;
+  background: white; border: 1px solid #C3CDD5; border-radius: 4px;
+  font-family: var(--font); font-size: 13px; color: var(--text);
+  cursor: pointer; white-space: nowrap; transition: border-color .12s;
+}
+.act-btn:hover { border-color: #9CA3AF; }
+.act-btn.open  { border-color: var(--blue); }
+.act-btn .lbl  { font-weight: 600; color: var(--blue); }
+.act-btn .chv  { color: var(--text-lt); transition: transform .18s; }
+.act-btn.open .chv { transform: rotate(180deg); }
+
+.act-menu {
+  position: absolute; bottom: calc(100% + 4px); left: 0;
+  background: white; border: 1px solid var(--border); border-radius: 4px;
+  box-shadow: 0 -4px 16px rgba(0,0,0,.1), 0 2px 4px rgba(0,0,0,.04);
+  min-width: 244px; z-index: 100; padding: 4px; display: none;
+}
+.act-menu.open { display: block; animation: fUp .12s ease; }
+@keyframes fUp { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+
+.act-opt {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 8px 10px; border-radius: 3px; cursor: pointer;
+  transition: background .1s; position: relative;
+}
+.act-opt:hover { background: var(--border-lt); }
+.act-opt.sel   { background: var(--blue-lt); }
+.act-opt.sel::after {
+  content:''; position:absolute; right:10px; top:50%;
+  transform:translateY(-50%); width:5px; height:5px;
+  border-radius:50%; background:var(--blue);
+}
+.opt-ico {
+  width: 24px; height: 24px; border-radius: 3px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.oi-green  { background: #EDFAF1; color: var(--green); }
+.oi-blue   { background: var(--blue-lt); color: var(--blue); }
+.oi-purple { background: #F5F3FF; color: var(--purple); }
+.opt-name  { font-size: 13px; font-weight: 500; color: var(--text); }
+.opt-desc  { font-size: 11.5px; color: var(--text-mid); margin-top: 1px; }
+.opt-sep   { height: 1px; background: var(--border-lt); margin: 3px 0; }
+
+/* Buttons */
+.ftr-right { display: flex; gap: 8px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 8px 16px; border-radius: 4px;
+  font-size: 14px; font-weight: 500; font-family: var(--font);
+  cursor: pointer; border: 1px solid transparent; transition: all .12s;
+}
+.btn:disabled { opacity:.42; cursor:not-allowed; }
+.btn-cancel  { background:white; color:var(--text); border-color:#C3CDD5; }
+.btn-cancel:hover:not(:disabled) { border-color:#9CA3AF; background:var(--border-lt); }
+.btn-confirm { background:var(--green); color:white; border-color:var(--green); }
+.btn-confirm:hover:not(:disabled) { background:var(--green-dk); border-color:var(--green-dk); }
+.spinner { width:13px; height:13px; border:2px solid rgba(255,255,255,.3); border-top-color:white; border-radius:50%; animation:spin .6s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg) } }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     TOP NAV — exact match to screenshot
+══════════════════════════════════════════ -->
+<nav class="ctfl-nav">
+  <div class="nav-left">
+
+    <!-- Contentful colorful C logo -->
+    <div class="ctfl-logo">
+      <svg width="26" height="26" viewBox="0 0 100 100" fill="none">
+        <path d="M 73.3 26.7 A 33 33 0 0 0 21.4 33.5" stroke="#3D8FE8" stroke-width="15" stroke-linecap="round"/>
+        <path d="M 21.4 33.5 A 33 33 0 0 0 21.4 66.5" stroke="#F5C108" stroke-width="15" stroke-linecap="butt"/>
+        <path d="M 21.4 66.5 A 33 33 0 0 0 73.3 73.3" stroke="#E05030" stroke-width="15" stroke-linecap="round"/>
+        <circle cx="21.4" cy="33.5" r="7.5" fill="#3D8FE8"/>
+        <circle cx="21.4" cy="66.5" r="7.5" fill="#E05030"/>
+      </svg>
+    </div>
+
+    <div class="nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Content
+    </div>
+    <div class="nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      Optimization
+    </div>
+    <div class="nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      Media
+    </div>
+    <div class="nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      AI &amp; Automations
+    </div>
+    <div class="nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Apps
+      <svg class="chv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+  </div>
+
+  <div class="nav-right">
+    <div class="space-pill">NVA &nbsp;›&nbsp; master 🚀</div>
+    <button class="icon-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </button>
+    <button class="icon-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    </button>
+    <div class="avatar">GC</div>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════
+     TAB BAR — Pharmacy Link active
+══════════════════════════════════════════ -->
+<div class="tab-bar">
+  <div class="tab">Activity logs</div>
+  <div class="tab">Versioning Logs</div>
+  <div class="tab active">Pharmacy Link</div>
+  <div class="tab">Pages Removal</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PAGE CONTENT (blurred behind modal)
+══════════════════════════════════════════ -->
+<div class="page">
+  <div class="page-bg">
+    <div class="pg-row">
+      <button class="pg-btn-outline">Download raw spreadsheet</button>
+      <span class="pg-info">ⓘ</span>
+    </div>
+    <div class="dropzone">
+      <span>Drop Excel file here</span>
+      <button class="pg-btn-outline">Choose file from computer</button>
+    </div>
+    <button class="pg-btn-green">Submit</button>
+    <hr class="pg-divider">
+    <div class="pg-section-title">Verify Live Pharmacy Links</div>
+    <div class="pg-section-desc">Upload the same pharmacy spreadsheet to verify that pharmacy links are live on the sites after publishing.</div>
+    <div class="dropzone">
+      <span>Drop Excel file here</span>
+      <button class="pg-btn-outline">Choose file from computer</button>
+    </div>
+    <button class="pg-btn-green">Verify</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       MODAL OVERLAY
+  ══════════════════════════════════════════ -->
+  <div class="overlay">
+    <div class="modal" id="modal">
+
+      <!-- Header -->
+      <div class="modal-hdr">
+        <div class="modal-title">Confirm pharmacy link updates</div>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="prog" id="prog"><div class="prog-fill" id="progFill"></div></div>
+
+      <!-- Success banner -->
+      <div class="banner" id="banner">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <span id="bannerMsg"></span>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+
+        <!-- Stat row -->
+        <div class="stats-row">
+          <div class="stat-item">
+            <div class="stat-n">1,203</div>
+            <div class="stat-l">Scanned</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-n blue" id="statN">1</div>
+            <div class="stat-l">Pending</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-n green">2</div>
+            <div class="stat-l">Already Updated</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-n gray">1,200</div>
+            <div class="stat-l">Skipped</div>
+          </div>
+        </div>
+
+        <!-- Pending section label -->
+        <div class="sec-wrap">
+          <div class="sec-lbl">Pending updates (<span id="pendingCt">1</span>)</div>
+          <div class="sec-desc">The system found entries with outdated pharmacy URLs. Toggle off any site to exclude it from this batch.</div>
+        </div>
+
+        <!-- Info notice -->
+        <div class="info-box ib-info" id="mainNote">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>3 uploaded from <strong>pharmacy_updates.xlsx</strong>. Toggle off any site to exclude it. Only included entries will be updated on confirm.</span>
+        </div>
+
+        <!-- Pending table -->
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th class="c" style="width:44px">Include</th>
+              <th style="width:26%">Site Name</th>
+              <th style="width:9%">Yext ID</th>
+              <th style="width:21%">Old URL</th>
+              <th style="width:16px"></th>
+              <th style="width:21%">New URL</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr id="row-1370">
+              <td class="c" style="padding:9px 8px">
+                <label class="row-tog">
+                  <input type="checkbox" checked id="chk-1370" onchange="toggleRow('1370',this)">
+                  <div class="sw"></div>
+                </label>
+              </td>
+              <td><div class="hosp">South Shore Equine Clinic &amp; Diagnostic Center</div></td>
+              <td class="yid">1370</td>
+              <td class="umono uold">ssequineclinic.<wbr>covetruspharmacy.com</td>
+              <td class="arr">→</td>
+              <td class="umono unew">shop.ssequineclinic.com</td>
+              <td><span class="tag t-pend" id="status-1370"><span class="dot"></span>Pending</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Warning box (amber) — matching screenshot 2 style -->
+        <div class="info-box ib-warn" style="margin-top:14px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--amber-icon)"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span>Already updated for these sites (2). These entries already have the new URL and will be skipped.</span>
+        </div>
+
+        <!-- Already updated section -->
+        <div class="sec-divider">
+          <div class="sd-title">
+            Already Updated
+            <span class="pill pill-gray">2</span>
+          </div>
+          <button class="tog-link" id="togBtn" onclick="toggleSkipped()">Show ▾</button>
+        </div>
+
+        <table class="tbl">
+          <tbody class="collapse" id="skippedRows">
+            <tr>
+              <td style="width:44px"></td>
+              <td style="width:26%"><div class="hosp" style="font-weight:400">All Creatures Animal Hospital</div></td>
+              <td class="yid" style="width:9%">0386</td>
+              <td class="umono udim" style="width:21%">allcreaturesanimalcl.<wbr>covetruspharmacy.com</td>
+              <td class="arr">→</td>
+              <td class="umono udim" style="width:21%">shop.allcreaturesanimalhospital.org</td>
+              <td><span class="tag t-skip"><span class="dot"></span>No change needed</span></td>
+            </tr>
+            <tr>
+              <td style="width:44px"></td>
+              <td><div class="hosp" style="font-weight:400">Portland Veterinary Wellness Center</div></td>
+              <td class="yid">0494</td>
+              <td class="umono udim">portlandvet.<wbr>covetruspharmacy.com</td>
+              <td class="arr">→</td>
+              <td class="umono udim">shop.portlandveterinarywellnesscenter.<wbr>com/pet/</td>
+              <td><span class="tag t-skip"><span class="dot"></span>No change needed</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="height:12px"></div>
+      </div><!-- /modal-body -->
+
+      <!-- Footer -->
+      <div class="modal-ftr" id="footer">
+        <!-- Action selector (left) -->
+        <div class="act-wrap" id="actWrap">
+          <button class="act-btn" id="actBtn" onclick="toggleMenu(event)">
+            <span style="color:var(--text-mid);font-size:12px">Action:</span>
+            <span class="lbl" id="actLbl">Publish all in Contentful</span>
+            <svg class="chv" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="act-menu" id="actMenu">
+            <div class="act-opt sel" onclick="setAction('publish','Publish all in Contentful',this)">
+              <div class="opt-ico oi-green"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div><div class="opt-name">Publish all in Contentful</div><div class="opt-desc">Save &amp; publish entries in Contentful CMS</div></div>
+            </div>
+            <div class="opt-sep"></div>
+            <div class="act-opt" onclick="setAction('stage','Stage all',this)">
+              <div class="opt-ico oi-blue"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></div>
+              <div><div class="opt-name">Stage all</div><div class="opt-desc">Save to staging for review before going live</div></div>
+            </div>
+            <div class="act-opt" onclick="setAction('live','Publish live edits',this)">
+              <div class="opt-ico oi-purple"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></div>
+              <div><div class="opt-name">Publish live edits</div><div class="opt-desc">Push changes directly to the live site</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cancel + Confirm (right, matching screenshot 2) -->
+        <div class="ftr-right">
+          <button class="btn btn-cancel" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-confirm" id="confirmBtn" onclick="doConfirm()">Confirm</button>
+        </div>
+      </div>
+
+    </div><!-- /modal -->
+  </div><!-- /overlay -->
+</div><!-- /page -->
+
+<script>
+let action = 'publish';
+const rows = ['1370'];
+const excl = new Set();
+
+function toggleRow(id, chk) {
+  const row = document.getElementById('row-' + id);
+  const tag = document.getElementById('status-' + id);
+  if (!chk.checked) {
+    excl.add(id); row.classList.add('excl');
+    tag.className = 'tag t-excl'; tag.innerHTML = '<span class="dot"></span>Excluded';
+  } else {
+    excl.delete(id); row.classList.remove('excl');
+    tag.className = 'tag t-pend'; tag.innerHTML = '<span class="dot"></span>Pending';
+  }
+  const n = rows.filter(r => !excl.has(r)).length;
+  document.getElementById('pendingCt').textContent = n;
+  document.getElementById('statN').textContent = n;
+  document.getElementById('confirmBtn').disabled = n === 0;
+}
+
+function toggleMenu(e) {
+  e.stopPropagation();
+  const m = document.getElementById('actMenu'), b = document.getElementById('actBtn');
+  const open = m.classList.toggle('open');
+  b.classList.toggle('open', open);
+  if (open) document.addEventListener('click', closeMenu, {once:true});
+}
+function closeMenu() {
+  document.getElementById('actMenu').classList.remove('open');
+  document.getElementById('actBtn').classList.remove('open');
+}
+function setAction(key, lbl, el) {
+  action = key;
+  document.getElementById('actLbl').textContent = lbl;
+  document.querySelectorAll('.act-opt').forEach(o => o.classList.remove('sel'));
+  el.classList.add('sel');
+  closeMenu();
+}
+
+function toggleSkipped() {
+  const r = document.getElementById('skippedRows');
+  const b = document.getElementById('togBtn');
+  const open = r.classList.toggle('open');
+  b.textContent = open ? 'Hide ▴' : 'Show ▾';
+}
+
+async function doConfirm() {
+  const included = rows.filter(r => !excl.has(r));
+  if (!included.length) return;
+
+  document.getElementById('actWrap').style.display = 'none';
+  document.getElementById('confirmBtn').innerHTML = '<span class="spinner"></span> Processing…';
+  document.getElementById('confirmBtn').disabled = true;
+  document.querySelector('.btn-cancel').disabled = true;
+
+  await prog(0, 80, 700); await wait(500);
+  await prog(80, 100, 300); await wait(350);
+  hideProg();
+
+  const cfg = {
+    publish: {tc:'t-pub', tt:'Published', nc:'ib-success', nt:'<strong>1 entry published in Contentful.</strong> Deploy to push changes live.', bc:'green',  bt:'1 entry published in Contentful.', ft:'1 entry published in Contentful'},
+    stage:   {tc:'t-stg', tt:'Staged',   nc:'ib-info',    nt:'<strong>1 entry saved to staging.</strong> Review before going live.',         bc:'blue',   bt:'1 entry saved to staging.',          ft:'1 entry saved to staging'},
+    live:    {tc:'t-live',tt:'Live',     nc:'ib-success', nt:'<strong>1 entry published live.</strong> The new pharmacy URL is now active.',  bc:'purple', bt:'1 entry published live. New URL is now active.', ft:'1 entry published live'},
+  }[action];
+
+  included.forEach(id => {
+    const t = document.getElementById('status-' + id);
+    t.className = 'tag ' + cfg.tc;
+    t.innerHTML = '<span class="dot"></span>' + cfg.tt;
+  });
+
+  const note = document.getElementById('mainNote');
+  note.className = 'info-box ' + cfg.nc;
+  note.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span>${cfg.nt}</span>`;
+
+  const ban = document.getElementById('banner');
+  ban.className = 'banner on ' + cfg.bc;
+  document.getElementById('bannerMsg').textContent = cfg.bt;
+  setTimeout(() => { ban.className = 'banner'; }, 5000);
+
+  document.getElementById('footer').innerHTML = `
+    <div style="font-size:13px;color:var(--text-mid)">${cfg.ft}</div>
+    <div class="ftr-right"><button class="btn btn-confirm" onclick="closeModal()">Done</button></div>
+  `;
+}
+
+function prog(from, to, ms) {
+  const p = document.getElementById('prog'), f = document.getElementById('progFill');
+  p.classList.add('on'); f.style.width = from + '%';
+  return new Promise(r => { setTimeout(() => { f.style.width = to + '%'; }, 30); setTimeout(r, ms + 30); });
+}
+function hideProg() {
+  document.getElementById('progFill').style.width = '100%';
+  setTimeout(() => { document.getElementById('prog').classList.remove('on'); document.getElementById('progFill').style.width = '0%'; }, 400);
+}
+function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+function closeModal() {
+  const o = document.querySelector('.overlay');
+  o.style.transition = 'opacity .18s'; o.style.opacity = '0';
+  setTimeout(() => o.style.display = 'none', 200);
+}
+</script>
+</body>
+</html>
