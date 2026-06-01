@@ -398,6 +398,28 @@ body {
 .btn-confirm:hover:not(:disabled) { background:var(--green-dk); border-color:var(--green-dk); }
 .spinner { width:13px; height:13px; border:2px solid rgba(255,255,255,.3); border-top-color:white; border-radius:50%; animation:spin .6s linear infinite; }
 @keyframes spin { to { transform:rotate(360deg) } }
+
+/* Location sub-line under hospital name */
+.loc-info { display:flex; align-items:center; gap:5px; margin-top:3px; }
+.loc-tag  { font-family:var(--mono); font-size:10.5px; background:var(--border-lt); border:1px solid var(--border); border-radius:2px; padding:1px 5px; color:var(--text-mid); white-space:nowrap; }
+.loc-pg   { font-family:var(--mono); font-size:10.5px; color:var(--text-lt); }
+
+/* Contentful record link icon */
+.ctfl-lnk { color:var(--text-lt); text-decoration:none; display:inline-flex; align-items:center; margin-left:5px; vertical-align:middle; transition:color .12s; }
+.ctfl-lnk:hover { color:var(--blue); }
+
+/* Success screen */
+.success-screen { padding:28px 20px 16px; display:flex; flex-direction:column; align-items:center; text-align:center; }
+.success-icon   { width:48px; height:48px; background:#EDFAF1; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:12px; }
+.success-title  { font-size:16px; font-weight:700; margin-bottom:5px; }
+.success-sub    { font-size:13px; color:var(--text-mid); margin-bottom:20px; }
+.result-tbl     { width:calc(100% - 40px); margin:0 20px 20px; border-collapse:collapse; font-size:13px; }
+.result-tbl th  { text-align:left; font-size:12px; color:var(--text-lt); font-weight:500; padding:6px 12px 5px; border-bottom:1px solid var(--border); }
+.result-tbl td  { padding:10px 12px; border-bottom:1px solid var(--border-lt); vertical-align:middle; }
+.result-link    { display:inline-flex; align-items:center; gap:4px; font-size:12px; color:var(--blue); text-decoration:none; padding:3px 8px; border:1px solid #BFDBFE; border-radius:3px; background:var(--blue-lt); transition:all .1s; white-space:nowrap; }
+.result-link:hover { background:#DBEAFE; }
+.result-link.green { color:var(--green); border-color:#A8D5B5; background:#EDFAF1; }
+.result-link.green:hover { background:#D1FAE5; }
 </style>
 </head>
 <body>
@@ -549,12 +571,13 @@ body {
           <thead>
             <tr>
               <th class="c" style="width:44px">Include</th>
-              <th style="width:26%">Site Name</th>
-              <th style="width:9%">Yext ID</th>
-              <th style="width:21%">Old URL</th>
+              <th style="width:24%">Site Name</th>
+              <th style="width:8%">Yext ID</th>
+              <th style="width:19%">Old URL</th>
               <th style="width:16px"></th>
-              <th style="width:21%">New URL</th>
+              <th style="width:19%">New URL</th>
               <th>Status</th>
+              <th style="width:28px"></th>
             </tr>
           </thead>
           <tbody>
@@ -565,12 +588,23 @@ body {
                   <div class="sw"></div>
                 </label>
               </td>
-              <td><div class="hosp">Mt. Diablo Veterinary Medical Center</div></td>
+              <td>
+                <div class="hosp">Mt. Diablo Veterinary Medical Center</div>
+                <div class="loc-info">
+                  <span class="loc-tag">Header</span>
+                  <span class="loc-pg">/homepage</span>
+                </div>
+              </td>
               <td class="yid">124</td>
               <td class="umono uold">mtdiablovetmedctr.<wbr>covetruspharmacy.com</td>
               <td class="arr">→</td>
               <td class="umono unew">shop.mtdiabloveterinarymedicalcenter.com</td>
               <td><span class="tag t-pend" id="status-124"><span class="dot"></span>Pending</span></td>
+              <td>
+                <a href="#" class="ctfl-lnk" title="View in Contentful" onclick="return false">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                </a>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -714,28 +748,67 @@ async function doConfirm() {
   hideProg();
 
   const cfg = {
-    publish: {tc:'t-pub', tt:'Published', nc:'ib-success', nt:'<strong>1 entry published in Contentful.</strong> Deploy to push changes live.', bc:'green',  bt:'1 entry published in Contentful.', ft:'1 entry published in Contentful'},
-    stage:   {tc:'t-stg', tt:'Staged',   nc:'ib-info',    nt:'<strong>1 entry saved to staging.</strong> Review before going live.',         bc:'blue',   bt:'1 entry saved to staging.',          ft:'1 entry saved to staging'},
-    live:    {tc:'t-live',tt:'Live',     nc:'ib-success', nt:'<strong>1 entry published live.</strong> The new pharmacy URL is now active.',  bc:'purple', bt:'1 entry published live. New URL is now active.', ft:'1 entry published live'},
+    publish: { tagCls:'t-pub',  tagTxt:'Published', bannerCls:'green',  summary:'published in Contentful' },
+    stage:   { tagCls:'t-stg',  tagTxt:'Staged',    bannerCls:'blue',   summary:'saved to staging' },
+    live:    { tagCls:'t-live', tagTxt:'Live',       bannerCls:'purple', summary:'published live' },
   }[action];
 
-  included.forEach(id => {
-    const t = document.getElementById('status-' + id);
-    t.className = 'tag ' + cfg.tc;
-    t.innerHTML = '<span class="dot"></span>' + cfg.tt;
-  });
+  const hospitalData = {
+    '124': { name:'Mt. Diablo Veterinary Medical Center', liveUrl:'https://mtdiabloveterinarymedicalcenter.com', loc:'Header · /homepage' }
+  };
 
-  const note = document.getElementById('mainNote');
-  note.className = 'info-box ' + cfg.nc;
-  note.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span>${cfg.nt}</span>`;
+  const n = included.length;
+  const summaryTxt = `${n} entr${n>1?'ies':'y'} ${cfg.summary}.`;
 
+  // Build result rows
+  const resultRows = included.map(id => {
+    const h = hospitalData[id] || { name:id, liveUrl:'#', loc:'—' };
+    return `
+      <tr>
+        <td>
+          <div class="hosp">${h.name}</div>
+          <div class="loc-info"><span class="loc-tag" style="font-size:10px">${h.loc}</span></div>
+        </td>
+        <td><span class="tag ${cfg.tagCls}"><span class="dot"></span>${cfg.tagTxt}</span></td>
+        <td>
+          <a href="#" class="result-link" onclick="return false">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Contentful record
+          </a>
+        </td>
+        <td>
+          <a href="${h.liveUrl}" class="result-link green" target="_blank" rel="noopener">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Live site
+          </a>
+        </td>
+      </tr>`;
+  }).join('');
+
+  // Replace modal body with success screen
+  document.getElementById('modal').querySelector('.modal-body').innerHTML = `
+    <div class="success-screen">
+      <div class="success-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E7D34" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <div class="success-title">Updates applied successfully</div>
+      <div class="success-sub">${summaryTxt} Click any link below to verify.</div>
+    </div>
+    <table class="result-tbl">
+      <thead><tr><th>Site</th><th>Status</th><th>Contentful Record</th><th>Live Site</th></tr></thead>
+      <tbody>${resultRows}</tbody>
+    </table>
+  `;
+
+  // Show banner
   const ban = document.getElementById('banner');
-  ban.className = 'banner on ' + cfg.bc;
-  document.getElementById('bannerMsg').textContent = cfg.bt;
-  setTimeout(() => { ban.className = 'banner'; }, 5000);
+  ban.className = 'banner on ' + cfg.bannerCls;
+  document.getElementById('bannerMsg').textContent = summaryTxt;
+  setTimeout(() => { ban.className = 'banner'; }, 6000);
 
+  // Update footer
   document.getElementById('footer').innerHTML = `
-    <div style="font-size:13px;color:var(--text-mid)">${cfg.ft}</div>
+    <div style="font-size:13px;color:var(--text-mid)">${summaryTxt}</div>
     <div class="ftr-right"><button class="btn btn-confirm" onclick="closeModal()">Done</button></div>
   `;
 }
