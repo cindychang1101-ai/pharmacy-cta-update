@@ -399,6 +399,10 @@ body {
 .spinner { width:13px; height:13px; border:2px solid rgba(255,255,255,.3); border-top-color:white; border-radius:50%; animation:spin .6s linear infinite; }
 @keyframes spin { to { transform:rotate(360deg) } }
 
+/* Grouped hospital rows */
+.hosp-grp-top td { border-bottom: none; }
+.hosp-grp-bot td { border-top: 1px solid var(--border-lt); }
+
 /* Location sub-line under hospital name */
 .loc-info { display:flex; align-items:center; gap:5px; margin-top:3px; }
 .loc-tag  { font-family:var(--mono); font-size:10.5px; background:var(--border-lt); border:1px solid var(--border); border-radius:2px; padding:1px 5px; color:var(--text-mid); white-space:nowrap; }
@@ -541,7 +545,7 @@ body {
             <div class="stat-l">Scanned</div>
           </div>
           <div class="stat-item">
-            <div class="stat-n blue" id="statN">1</div>
+            <div class="stat-n blue" id="statN">2</div>
             <div class="stat-l">Pending</div>
           </div>
           <div class="stat-item">
@@ -549,14 +553,14 @@ body {
             <div class="stat-l">Already Updated</div>
           </div>
           <div class="stat-item">
-            <div class="stat-n gray">844</div>
+            <div class="stat-n gray">843</div>
             <div class="stat-l">Skipped</div>
           </div>
         </div>
 
         <!-- Pending section label -->
         <div class="sec-wrap">
-          <div class="sec-lbl">Pending updates (<span id="pendingCt">1</span>)</div>
+          <div class="sec-lbl">Pending updates (<span id="pendingCt">2</span>)</div>
           <div class="sec-desc">The system found entries with outdated pharmacy URLs. Toggle off any site to exclude it from this batch.</div>
         </div>
 
@@ -581,25 +585,46 @@ body {
             </tr>
           </thead>
           <tbody>
-            <tr id="row-124">
-              <td class="c" style="padding:9px 8px">
+            <!-- Row 1 of 2 for Mt. Diablo — toggle + hospital name span both rows -->
+            <tr id="row-124-1" class="hosp-grp-top">
+              <td class="c" style="padding:9px 8px" rowspan="2">
                 <label class="row-tog">
-                  <input type="checkbox" checked id="chk-124" onchange="toggleRow('124',this)">
+                  <input type="checkbox" checked id="chk-124" onchange="toggleHospital('124',this)">
                   <div class="sw"></div>
                 </label>
               </td>
-              <td>
+              <td rowspan="2" style="border-right:1px solid var(--border-lt)">
                 <div class="hosp">Mt. Diablo Veterinary Medical Center</div>
+                <div style="font-family:var(--mono);font-size:11px;color:var(--text-lt);margin-top:3px">ID: 124</div>
+              </td>
+              <td>
                 <div class="loc-info">
                   <span class="loc-tag">Header</span>
                   <span class="loc-pg">/homepage</span>
                 </div>
               </td>
-              <td class="yid">124</td>
               <td class="umono uold">mtdiablovetmedctr.<wbr>covetruspharmacy.com</td>
               <td class="arr">→</td>
               <td class="umono unew">shop.mtdiabloveterinarymedicalcenter.com</td>
-              <td><span class="tag t-pend" id="status-124"><span class="dot"></span>Pending</span></td>
+              <td><span class="tag t-pend" id="status-124-1"><span class="dot"></span>Pending</span></td>
+              <td>
+                <a href="#" class="ctfl-lnk" title="View in Contentful" onclick="return false">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                </a>
+              </td>
+            </tr>
+            <!-- Row 2 of 2 for Mt. Diablo -->
+            <tr id="row-124-2" class="hosp-grp-bot">
+              <td>
+                <div class="loc-info">
+                  <span class="loc-tag">Hero Card #3</span>
+                  <span class="loc-pg">/homepage · Hero Carousel</span>
+                </div>
+              </td>
+              <td class="umono uold">mtdiablovetmedctr.<wbr>covetruspharmacy.com</td>
+              <td class="arr">→</td>
+              <td class="umono unew">shop.mtdiabloveterinarymedicalcenter.com</td>
+              <td><span class="tag t-pend" id="status-124-2"><span class="dot"></span>Pending</span></td>
               <td>
                 <a href="#" class="ctfl-lnk" title="View in Contentful" onclick="return false">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
@@ -689,20 +714,34 @@ body {
 
 <script>
 let action = 'publish';
-const rows = ['124'];
-const excl = new Set();
+// hospitals maps hospital ID → array of CTA row suffixes
+const hospitals = { '124': ['124-1', '124-2'] };
+const allRows = Object.values(hospitals).flat();
+const exclHospitals = new Set();
 
-function toggleRow(id, chk) {
-  const row = document.getElementById('row-' + id);
-  const tag = document.getElementById('status-' + id);
+function toggleHospital(id, chk) {
+  const ctaIds = hospitals[id];
   if (!chk.checked) {
-    excl.add(id); row.classList.add('excl');
-    tag.className = 'tag t-excl'; tag.innerHTML = '<span class="dot"></span>Excluded';
+    exclHospitals.add(id);
+    ctaIds.forEach(rid => {
+      const row = document.getElementById('row-' + rid);
+      const tag = document.getElementById('status-' + rid);
+      if (row) row.classList.add('excl');
+      if (tag) { tag.className = 'tag t-excl'; tag.innerHTML = '<span class="dot"></span>Excluded'; }
+    });
   } else {
-    excl.delete(id); row.classList.remove('excl');
-    tag.className = 'tag t-pend'; tag.innerHTML = '<span class="dot"></span>Pending';
+    exclHospitals.delete(id);
+    ctaIds.forEach(rid => {
+      const row = document.getElementById('row-' + rid);
+      const tag = document.getElementById('status-' + rid);
+      if (row) row.classList.remove('excl');
+      if (tag) { tag.className = 'tag t-pend'; tag.innerHTML = '<span class="dot"></span>Pending'; }
+    });
   }
-  const n = rows.filter(r => !excl.has(r)).length;
+  const n = allRows.filter(rid => {
+    const hospId = Object.keys(hospitals).find(h => hospitals[h].includes(rid));
+    return !exclHospitals.has(hospId);
+  }).length;
   document.getElementById('pendingCt').textContent = n;
   document.getElementById('statN').textContent = n;
   document.getElementById('confirmBtn').disabled = n === 0;
@@ -735,7 +774,10 @@ function toggleSkipped() {
 }
 
 async function doConfirm() {
-  const included = rows.filter(r => !excl.has(r));
+  const included = allRows.filter(rid => {
+    const hospId = Object.keys(hospitals).find(h => hospitals[h].includes(rid));
+    return !exclHospitals.has(hospId);
+  });
   if (!included.length) return;
 
   document.getElementById('actWrap').style.display = 'none';
@@ -753,21 +795,33 @@ async function doConfirm() {
     live:    { tagCls:'t-live', tagTxt:'Live',       bannerCls:'purple', summary:'published live' },
   }[action];
 
-  const hospitalData = {
-    '124': { name:'Mt. Diablo Veterinary Medical Center', liveUrl:'https://mtdiabloveterinarymedicalcenter.com', loc:'Header · /homepage' }
+  const ctaData = {
+    '124-1': { hospName:'Mt. Diablo Veterinary Medical Center', loc:'Header · /homepage',          liveUrl:'https://mtdiabloveterinarymedicalcenter.com' },
+    '124-2': { hospName:'Mt. Diablo Veterinary Medical Center', loc:'Hero Card #3 · /homepage',    liveUrl:'https://mtdiabloveterinarymedicalcenter.com' },
   };
 
-  const n = included.length;
+  const includedCtas = allRows.filter(rid => {
+    const hospId = Object.keys(hospitals).find(h => hospitals[h].includes(rid));
+    return !exclHospitals.has(hospId);
+  });
+
+  const n = includedCtas.length;
   const summaryTxt = `${n} entr${n>1?'ies':'y'} ${cfg.summary}.`;
 
+  // Update status tags
+  includedCtas.forEach(rid => {
+    const t = document.getElementById('status-' + rid);
+    if (t) { t.className = 'tag ' + cfg.tagCls; t.innerHTML = '<span class="dot"></span>' + cfg.tagTxt; }
+  });
+
   // Build result rows
-  const resultRows = included.map(id => {
-    const h = hospitalData[id] || { name:id, liveUrl:'#', loc:'—' };
+  const resultRows = includedCtas.map(rid => {
+    const c = ctaData[rid] || { hospName:rid, loc:'—', liveUrl:'#' };
     return `
       <tr>
         <td>
-          <div class="hosp">${h.name}</div>
-          <div class="loc-info"><span class="loc-tag" style="font-size:10px">${h.loc}</span></div>
+          <div class="hosp" style="font-size:13px">${c.hospName}</div>
+          <div class="loc-info"><span class="loc-tag" style="font-size:10px">${c.loc}</span></div>
         </td>
         <td><span class="tag ${cfg.tagCls}"><span class="dot"></span>${cfg.tagTxt}</span></td>
         <td>
@@ -777,7 +831,7 @@ async function doConfirm() {
           </a>
         </td>
         <td>
-          <a href="${h.liveUrl}" class="result-link green" target="_blank" rel="noopener">
+          <a href="${c.liveUrl}" class="result-link green" target="_blank" rel="noopener">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             Live site
           </a>
