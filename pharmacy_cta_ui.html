@@ -425,6 +425,12 @@ thead.collapse.open { display: table-header-group; }
 .result-link:hover { background:#DBEAFE; }
 .result-link.green { color:var(--green); border-color:#A8D5B5; background:#EDFAF1; }
 .result-link.green:hover { background:#D1FAE5; }
+.result-link.purple { color:var(--purple); border-color:#DDD6FE; background:#F5F3FF; }
+.result-link.purple:hover { background:#EDE9FE; }
+
+/* Clickable hospital name in confirmed view */
+.hosp-link { color:var(--blue); text-decoration:none; font-weight:500; font-size:13px; }
+.hosp-link:hover { text-decoration:underline; }
 </style>
 </head>
 <body>
@@ -788,96 +794,95 @@ function toggleSkipped() {
 }
 
 async function doConfirm() {
-  const included = allRows.filter(rid => {
-    const hospId = Object.keys(hospitals).find(h => hospitals[h].includes(rid));
-    return !exclHospitals.has(hospId);
-  });
-  if (!included.length) return;
+  const btn = document.getElementById('confirmBtn');
+  const cancelBtn = document.querySelector('.btn-cancel');
 
+  // Step 1 — "Confirming..." state
+  btn.textContent = 'Confirming...';
+  btn.style.background = '#EDFAF1';
+  btn.style.color = '#1E7D34';
+  btn.style.borderColor = '#A8D5B5';
+  btn.disabled = true;
+  cancelBtn.disabled = true;
   document.getElementById('actWrap').style.display = 'none';
-  document.getElementById('confirmBtn').innerHTML = '<span class="spinner"></span> Processing…';
-  document.getElementById('confirmBtn').disabled = true;
-  document.querySelector('.btn-cancel').disabled = true;
 
-  await prog(0, 80, 700); await wait(500);
-  await prog(80, 100, 300); await wait(350);
-  hideProg();
+  // Step 2 — wait 3 seconds
+  await wait(3000);
 
-  const cfg = {
-    publish: { tagCls:'t-pub',  tagTxt:'Published', bannerCls:'green',  summary:'published in Contentful' },
-    stage:   { tagCls:'t-stg',  tagTxt:'Staged',    bannerCls:'blue',   summary:'saved to staging' },
-    live:    { tagCls:'t-live', tagTxt:'Live',       bannerCls:'purple', summary:'published live' },
+  // Step 3 — build confirmed view
+  const actionSubtitle = {
+    publish: 'You have saved all changes in Contentful.',
+    stage:   'You have staged all changes for review before going live.',
+    live:    'You have published all changes directly to the live site.',
   }[action];
 
-  const ctaData = {
-    '124-1': { hospName:'Mt. Diablo Veterinary Medical Center', loc:'Header · /homepage',          liveUrl:'https://mtdiabloveterinarymedicalcenter.com' },
-    '124-2': { hospName:'Mt. Diablo Veterinary Medical Center', loc:'Hero Card #3 · /homepage',    liveUrl:'https://mtdiabloveterinarymedicalcenter.com' },
-  };
+  const extLinkIcon = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
 
-  const includedCtas = allRows.filter(rid => {
-    const hospId = Object.keys(hospitals).find(h => hospitals[h].includes(rid));
-    return !exclHospitals.has(hospId);
-  });
+  const confirmedRows = `
+    <tr class="hosp-grp-top">
+      <td rowspan="2" style="vertical-align:middle">
+        <a href="#" class="hosp-link" onclick="return false">Mt. Diablo Veterinary Medical Center</a>
+      </td>
+      <td class="yid" rowspan="2" style="vertical-align:middle">124</td>
+      <td><div class="loc-info"><span class="loc-tag">Header</span><span class="loc-pg">/homepage</span></div></td>
+      <td class="umono uold">mtdiablovetmedctr.<wbr>covetruspharmacy.com</td>
+      <td class="arr">→</td>
+      <td class="umono unew">shop.mtdiabloveterinarymedicalcenter.com</td>
+      <td><a href="#" class="result-link" onclick="return false">${extLinkIcon} Edit</a></td>
+      <td><a href="#" class="result-link purple" onclick="return false">${extLinkIcon} Staging</a></td>
+      <td><a href="https://mtdiabloveterinarymedicalcenter.com" class="result-link green" target="_blank" rel="noopener">${extLinkIcon} Live site</a></td>
+    </tr>
+    <tr class="hosp-grp-bot">
+      <td><div class="loc-info"><span class="loc-tag">Hero Card #3</span><span class="loc-pg">/homepage · Hero Carousel</span></div></td>
+      <td class="umono uold">mtdiablovetmedctr.<wbr>covetruspharmacy.com</td>
+      <td class="arr">→</td>
+      <td class="umono unew">shop.mtdiabloveterinarymedicalcenter.com</td>
+      <td><a href="#" class="result-link" onclick="return false">${extLinkIcon} Edit</a></td>
+      <td><a href="#" class="result-link purple" onclick="return false">${extLinkIcon} Staging</a></td>
+      <td><a href="https://mtdiabloveterinarymedicalcenter.com" class="result-link green" target="_blank" rel="noopener">${extLinkIcon} Live site</a></td>
+    </tr>`;
 
-  const n = includedCtas.length;
-  const summaryTxt = `${n} entr${n>1?'ies':'y'} ${cfg.summary}.`;
+  const modal = document.getElementById('modal');
 
-  // Update status tags
-  includedCtas.forEach(rid => {
-    const t = document.getElementById('status-' + rid);
-    if (t) { t.className = 'tag ' + cfg.tagCls; t.innerHTML = '<span class="dot"></span>' + cfg.tagTxt; }
-  });
+  // Widen modal for the extra columns
+  modal.style.maxWidth = '1040px';
 
-  // Build result rows
-  const resultRows = includedCtas.map(rid => {
-    const c = ctaData[rid] || { hospName:rid, loc:'—', liveUrl:'#' };
-    return `
-      <tr>
-        <td>
-          <div class="hosp" style="font-size:13px">${c.hospName}</div>
-          <div class="loc-info"><span class="loc-tag" style="font-size:10px">${c.loc}</span></div>
-        </td>
-        <td><span class="tag ${cfg.tagCls}"><span class="dot"></span>${cfg.tagTxt}</span></td>
-        <td>
-          <a href="#" class="result-link" onclick="return false">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-            Contentful record
-          </a>
-        </td>
-        <td>
-          <a href="${c.liveUrl}" class="result-link green" target="_blank" rel="noopener">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-            Live site
-          </a>
-        </td>
-      </tr>`;
-  }).join('');
-
-  // Replace modal body with success screen
-  document.getElementById('modal').querySelector('.modal-body').innerHTML = `
-    <div class="success-screen">
-      <div class="success-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E7D34" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-      </div>
-      <div class="success-title">Updates applied successfully</div>
-      <div class="success-sub">${summaryTxt} Click any link below to verify.</div>
+  // Replace header
+  modal.querySelector('.modal-hdr').innerHTML = `
+    <div>
+      <div class="modal-title">Confirmed pharmacy link update</div>
+      <div style="font-size:13px;color:var(--text-mid);margin-top:4px">${actionSubtitle}</div>
     </div>
-    <table class="result-tbl">
-      <thead><tr><th>Site</th><th>Status</th><th>Contentful Record</th><th>Live Site</th></tr></thead>
-      <tbody>${resultRows}</tbody>
-    </table>
+    <button class="modal-close" onclick="closeModal()">×</button>
   `;
 
-  // Show banner
-  const ban = document.getElementById('banner');
-  ban.className = 'banner on ' + cfg.bannerCls;
-  document.getElementById('bannerMsg').textContent = summaryTxt;
-  setTimeout(() => { ban.className = 'banner'; }, 6000);
+  // Replace body
+  modal.querySelector('.modal-body').innerHTML = `
+    <table class="tbl" style="margin-top:4px">
+      <thead>
+        <tr>
+          <th style="width:18%">Hospital</th>
+          <th style="width:6%">Yext ID</th>
+          <th style="width:14%">Location</th>
+          <th style="width:14%">Old URL</th>
+          <th style="width:16px"></th>
+          <th style="width:14%">New URL</th>
+          <th style="width:72px">Edit in Contentful</th>
+          <th style="width:72px">Staging Link</th>
+          <th style="width:72px">Site Link</th>
+        </tr>
+      </thead>
+      <tbody>${confirmedRows}</tbody>
+    </table>
+    <div style="height:12px"></div>
+  `;
 
-  // Update footer
-  document.getElementById('footer').innerHTML = `
-    <div style="font-size:13px;color:var(--text-mid)">${summaryTxt}</div>
-    <div class="ftr-right"><button class="btn btn-confirm" onclick="closeModal()">Done</button></div>
+  // Replace footer — close button only
+  modal.querySelector('#footer').innerHTML = `
+    <div style="flex:1"></div>
+    <div class="ftr-right">
+      <button class="btn btn-cancel" onclick="closeModal()">Close window</button>
+    </div>
   `;
 }
 
